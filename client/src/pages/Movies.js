@@ -13,7 +13,7 @@ class Movies extends Component {
     title: "",
     year: "",
     actors: "",
-    movieImg: "",
+    poster: "",
   };
 
   componentDidMount() {
@@ -22,15 +22,17 @@ class Movies extends Component {
 
   loadMovies = () => {
     API.getSavedMovies()
-      .then(res =>
+      .then(res =>{
+        console.log("res.data", res.data)
         this.setState({savedMovies: res.data})
+      }
       )
       .catch(err => console.log(err));
   };
 
   deleteMovie = id => {
     API.deleteMovie(id)
-      .then(res => this.loadMovie())
+      .then(res => this.loadMovies())
       .catch(err => console.log(err));
   };
 
@@ -40,18 +42,18 @@ class Movies extends Component {
       [name]: value
     });
   };
-  
+
   handleFormSubmit = event => {
     event.preventDefault();
     if(this.state.searchInput !== ""){
       API.search(this.state.searchInput)
         .then(res => {
           console.log(res);
-          this.setState({title: res.data.Title, actors: res.data.Actors, year: res.data.Year,movieImg:res.data.Poster, foundMovie: true })
+          this.setState({title: res.data.Title, actors: res.data.Actors, year: res.data.Year, poster:res.data.Poster, foundMovie: true })
         })
         .catch(err => console.log(err));
     }
-    
+
   };
   saveButton = event => {
     event.preventDefault();
@@ -63,9 +65,9 @@ class Movies extends Component {
       <Container fluid>
         <Row>
           <Col size="md-6">
-            
+
               <h2>Search Movies</h2>
-           
+
             <form>
               <Input
                 value={this.state.searchInput}
@@ -80,11 +82,11 @@ class Movies extends Component {
               </FormBtnSearch>
             </form>
           </Col>
-          
+
           <Col size="md-6 sm-12">
-            
+
               <h2>Saved movies to watch</h2>
-            
+
             {this.state.savedMovies.length ? (
               <List>
                 {this.state.savedMovies.map(movie => (
@@ -93,7 +95,7 @@ class Movies extends Component {
                       <strong>
                         {movie.title}
                       </strong>
-                      <img style={{width:"50px", height:"50px"}} src={movie.movieImg}/>
+                      <img style={{width:"50px", height:"50px"}} src={movie.poster}/>
                     </p>
                     <DeleteBtn onClick={() => this.deleteMovie(movie._id)} />
                   </ListItem>
@@ -109,16 +111,30 @@ class Movies extends Component {
               <h1 name="title">{this.state.title}</h1>
               <p name="year">{this.state.year}</p>
               <p name="actors">{this.state.actors}</p>
-              <img src={this.state.movieImg}/>
-              {this.state.foundMovie ? (<FormBtnSave onClick={() => 
-                API.saveMovie(
+              <img src={this.state.poster}/>
+              {this.state.foundMovie ? (<FormBtnSave onClick={() =>{
+                var self = this;
+                var x = API.saveMovie(
                   {
                     title: this.state.title,
                     actors: this.state.actors,
                     year: this.state.year,
-                    movieImg: this.state.movieImg
+                    poster: this.state.poster
                   }
                 )
+                x.then(function(result){
+                //   console.log(result);
+                //   self.setState(
+                //     {savedMovies: [...self.state.savedMovies,
+                //       {title: result.data.title,
+                //        actors: result.data.actors,
+                //        year: result.data.year,
+                //        poster: result.data.poster,
+                //        _id: result.data._id}] });
+                // })
+                self.loadMovies();
+              })
+            }
               }>
 
               Save</FormBtnSave>) : (<p></p>)}
